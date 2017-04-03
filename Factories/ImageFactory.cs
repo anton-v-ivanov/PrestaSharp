@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bukimedia.PrestaSharp.Entities;
 
 namespace Bukimedia.PrestaSharp.Factories
 {
@@ -37,17 +38,17 @@ namespace Bukimedia.PrestaSharp.Factories
             return AuxDeclinations;
         }
 
-        protected void AddImage(string Resource, long? Id, string ImagePath)
+        protected image AddImage(string Resource, long? Id, string ImagePath)
         {
-            RestRequest request = this.RequestForAddImage(Resource, Id, ImagePath);
-            this.ExecuteForImage(request);
-        }
+            RestRequest request = RequestForAddImage(Resource, Id, ImagePath);
+			return Execute<image>(request);
+		}
         
-        protected void AddImage(string Resource, long? Id, byte[] Image)
+        protected image AddImage(string Resource, long? Id, byte[] Image)
         {
             RestRequest request = this.RequestForAddImage(Resource, Id, Image);
-            this.ExecuteForImage(request);
-        }
+			return Execute<image>(request);
+		}
 
         protected void UpdateImage(string Resource, long? ResourceId, long? ImageId, string ImagePath)
         {
@@ -100,7 +101,7 @@ namespace Bukimedia.PrestaSharp.Factories
 
         #region Product images
 
-        public List<Entities.image> GetAllProductImages()
+        public List<image> GetAllProductImages()
         {
             return this.GetAllImages("products");
         }
@@ -110,14 +111,14 @@ namespace Bukimedia.PrestaSharp.Factories
             return this.GetImagesByInstance("products", ProductId);
         }
 
-        public void AddProductImage(long ProductId, string ProductImagePath)
+        public image AddProductImage(long ProductId, string ProductImagePath)
         {
-            this.AddImage("products", ProductId, ProductImagePath);
+            return AddImage("products", ProductId, ProductImagePath);
         }
         
-        public void AddProductImage(long ProductId, byte[] ProductImage)
+        public image AddProductImage(long ProductId, byte[] ProductImage)
         {
-            this.AddImage("products", ProductId, ProductImage);
+            return AddImage("products", ProductId, ProductImage);
         }
 
         public void UpdateProductImage(long ProductId, long ImageId, string ProductImagePath)
