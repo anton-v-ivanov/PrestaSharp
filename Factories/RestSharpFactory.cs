@@ -6,10 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using RestSharp.Authenticators;
 
 namespace Bukimedia.PrestaSharp.Factories
 {
@@ -26,7 +24,7 @@ namespace Bukimedia.PrestaSharp.Factories
             this.Password = Password;
         }
 
-        protected T Execute<T>(RestRequest Request) where T : new()
+        protected Task<T> Execute<T>(RestRequest Request) where T : new()
         {
             var client = new RestClient();
             client.AddHandler("text/html", new PrestaSharpTextErrorDeserializer());
@@ -36,53 +34,32 @@ namespace Bukimedia.PrestaSharp.Factories
             if (Request.Method == Method.GET)
             {
                 client.ClearHandlers();
-                client.AddHandler("text/xml", new Bukimedia.PrestaSharp.Deserializers.PrestaSharpDeserializer());
+                client.AddHandler("text/xml", new PrestaSharpDeserializer());
             }
-            var response = client.Execute<T>(Request);
-            if (response.StatusCode == HttpStatusCode.InternalServerError
-                || response.StatusCode == HttpStatusCode.ServiceUnavailable
-                || response.StatusCode == HttpStatusCode.BadRequest
-                || response.StatusCode == HttpStatusCode.Unauthorized
-                || response.StatusCode == HttpStatusCode.MethodNotAllowed
-                || response.StatusCode == HttpStatusCode.Forbidden
-                || response.StatusCode == HttpStatusCode.NotFound
-                || response.StatusCode == 0)
+
+            var tcs = new TaskCompletionSource<T>();
+            client.ExecuteAsync<T>(Request, response =>
             {
-                string RequestParameters = Environment.NewLine;
-                foreach (RestSharp.Parameter Parameter in Request.Parameters)
+                if (response.StatusCode == HttpStatusCode.InternalServerError
+                    || response.StatusCode == HttpStatusCode.ServiceUnavailable
+                    || response.StatusCode == HttpStatusCode.BadRequest
+                    || response.StatusCode == HttpStatusCode.Unauthorized
+                    || response.StatusCode == HttpStatusCode.MethodNotAllowed
+                    || response.StatusCode == HttpStatusCode.Forbidden
+                    || response.StatusCode == HttpStatusCode.NotFound
+                    || response.StatusCode == 0)
                 {
-                    RequestParameters += Parameter.Value + Environment.NewLine + Environment.NewLine;
+                    var requestParameters = Request.Parameters.Aggregate(Environment.NewLine, (c, p) => c + p.Value + Environment.NewLine + Environment.NewLine);
+                    var exception = new PrestaSharpException(requestParameters + response.Content, response.ErrorMessage, response.StatusCode, response.ErrorException);
+                    tcs.SetException(exception);
+                    return;
                 }
-                var Exception = new PrestaSharpException(RequestParameters + response.Content, response.ErrorMessage, response.StatusCode, response.ErrorException);
-                throw Exception;
-            }
-            return response.Data;
+                tcs.SetResult(response.Data);
+            });
+            return tcs.Task;
         }
 
-        protected void ExecuteAsync<T>(RestRequest Request) where T : new()
-        {
-            var client = new RestClient(this.BaseUrl);
-            try
-            {
-                client.ExecuteAsync(Request, response =>
-                {
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        Console.WriteLine(response.ToString());
-                    }
-                    else
-                    {
-                        Console.WriteLine(response.ToString());
-                    }
-                });
-            }
-            catch (Exception error)
-            {
-                error.ToString();
-            }
-        }
-
-        protected T ExecuteForFilter<T>(RestRequest Request) where T : new()
+        protected Task<T> ExecuteForFilter<T>(RestRequest Request) where T : new()
         {
             var client = new RestClient();
             client.BaseUrl = new Uri(this.BaseUrl);
@@ -90,65 +67,76 @@ namespace Bukimedia.PrestaSharp.Factories
             Request.AddParameter("ws_key", this.Account, ParameterType.QueryString); // used on every request
             client.ClearHandlers();
             client.AddHandler("text/xml", new Bukimedia.PrestaSharp.Deserializers.PrestaSharpDeserializer());
-            var response = client.Execute<T>(Request);
-            if (response.StatusCode == HttpStatusCode.InternalServerError
-                || response.StatusCode == HttpStatusCode.ServiceUnavailable
-                || response.StatusCode == HttpStatusCode.BadRequest
-                || response.StatusCode == HttpStatusCode.Unauthorized
-                || response.StatusCode == HttpStatusCode.MethodNotAllowed
-                || response.StatusCode == HttpStatusCode.Forbidden
-                || response.StatusCode == HttpStatusCode.NotFound
-                || response.StatusCode == 0)
+            
+            var tcs = new TaskCompletionSource<T>();
+            client.ExecuteAsync<T>(Request, response =>
             {
-                string RequestParameters = Environment.NewLine;
-                foreach (RestSharp.Parameter Parameter in Request.Parameters)
+                if (response.StatusCode == HttpStatusCode.InternalServerError
+                    || response.StatusCode == HttpStatusCode.ServiceUnavailable
+                    || response.StatusCode == HttpStatusCode.BadRequest
+                    || response.StatusCode == HttpStatusCode.Unauthorized
+                    || response.StatusCode == HttpStatusCode.MethodNotAllowed
+                    || response.StatusCode == HttpStatusCode.Forbidden
+                    || response.StatusCode == HttpStatusCode.NotFound
+                    || response.StatusCode == 0)
                 {
-                    RequestParameters += Parameter.Value + Environment.NewLine + Environment.NewLine;
+                    var requestParameters = Request.Parameters.Aggregate(Environment.NewLine, (c, p) => c + p.Value + Environment.NewLine + Environment.NewLine);
+                    var exception = new PrestaSharpException(requestParameters + response.Content, response.ErrorMessage, response.StatusCode, response.ErrorException);
+                    tcs.SetException(exception);
+                    return;
                 }
-                var Exception = new PrestaSharpException(RequestParameters + response.Content, response.ErrorMessage, response.StatusCode, response.ErrorException);
-                throw Exception;
-            }
-            return response.Data;
+                tcs.SetResult(response.Data);
+            });
+
+            return tcs.Task;
         }
 
-        protected List<long> ExecuteForGetIds<T>(RestRequest Request, string RootElement) where T : new()
+        protected Task<List<long>> ExecuteForGetIds<T>(RestRequest request, string rootElement) where T : new()
+        {
+            var client = new RestClient();
+            client.BaseUrl = new Uri(this.BaseUrl);
+            //client.Authenticator = new HttpBasicAuthenticator(this.Account, this.Password);
+            request.AddParameter("ws_key", this.Account, ParameterType.QueryString);
+
+            var tcs = new TaskCompletionSource<List<long>>();
+            client.ExecuteAsync<T>(request, response =>
+            {
+                var xDcoument = XDocument.Parse(response.Content);
+                tcs.SetResult((from doc in xDcoument.Descendants(rootElement)
+                    select long.Parse(doc.Attribute("id").Value)).ToList());
+            });
+            return tcs.Task;
+        }
+
+        protected Task<byte[]> ExecuteForImage(RestRequest Request)
         {
             var client = new RestClient();
             client.BaseUrl = new Uri(this.BaseUrl);
             //client.Authenticator = new HttpBasicAuthenticator(this.Account, this.Password);
             Request.AddParameter("ws_key", this.Account, ParameterType.QueryString);
-            var response = client.Execute<T>(Request);
-            XDocument xDcoument = XDocument.Parse(response.Content);
-            var ids = (from doc in xDcoument.Descendants(RootElement)
-                       select long.Parse(doc.Attribute("id").Value)).ToList();
-            return ids;
-        }
 
-        protected byte[] ExecuteForImage(RestRequest Request)
-        {
-            var client = new RestClient();
-            client.BaseUrl = new Uri(this.BaseUrl);
-            //client.Authenticator = new HttpBasicAuthenticator(this.Account, this.Password);
-            Request.AddParameter("ws_key", this.Account, ParameterType.QueryString);
-            var response = client.Execute(Request);
-            if (response.StatusCode == HttpStatusCode.InternalServerError
-                || response.StatusCode == HttpStatusCode.ServiceUnavailable
-                || response.StatusCode == HttpStatusCode.BadRequest
-                || response.StatusCode == HttpStatusCode.Unauthorized
-                || response.StatusCode == HttpStatusCode.MethodNotAllowed
-                || response.StatusCode == HttpStatusCode.Forbidden
-                || response.StatusCode == HttpStatusCode.NotFound
-                || response.StatusCode == 0)
+            var tcs = new TaskCompletionSource<byte[]>();
+            client.ExecuteAsync(Request, response =>
             {
-                string RequestParameters = Environment.NewLine;
-                foreach (RestSharp.Parameter Parameter in Request.Parameters)
+                if (response.StatusCode == HttpStatusCode.InternalServerError
+                    || response.StatusCode == HttpStatusCode.ServiceUnavailable
+                    || response.StatusCode == HttpStatusCode.BadRequest
+                    || response.StatusCode == HttpStatusCode.Unauthorized
+                    || response.StatusCode == HttpStatusCode.MethodNotAllowed
+                    || response.StatusCode == HttpStatusCode.Forbidden
+                    || response.StatusCode == HttpStatusCode.NotFound
+                    || response.StatusCode == 0)
                 {
-                    RequestParameters += Parameter.Value + Environment.NewLine + Environment.NewLine;
+                    var requestParameters = Request.Parameters.Aggregate(Environment.NewLine, (c, p) => c + p.Value + Environment.NewLine + Environment.NewLine);
+                    var exception = new PrestaSharpException(requestParameters + response.Content, response.ErrorMessage, response.StatusCode, response.ErrorException);
+                    tcs.SetException(exception);
+                    return;
                 }
-                var Exception = new PrestaSharpException(RequestParameters + response.Content, response.ErrorMessage, response.StatusCode, response.ErrorException);
-                throw Exception;
-            }
-            return response.RawBytes;
+
+                tcs.SetResult(response.RawBytes);
+            });
+
+            return tcs.Task;
         }
 
         protected RestRequest RequestForGet(string Resource, long? Id, string RootElement)

@@ -1,10 +1,7 @@
 ﻿using RestSharp;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
 namespace Bukimedia.PrestaSharp.Factories
 {
@@ -15,42 +12,42 @@ namespace Bukimedia.PrestaSharp.Factories
         {
         }
 
-        public Entities.product_feature Get(long ProductFeatureId)
+        public Task<Entities.product_feature> Get(long ProductFeatureId)
         {
             RestRequest request = this.RequestForGet("product_features", ProductFeatureId, "product_feature");
             return this.Execute<Entities.product_feature>(request);
         }
 
-        public Entities.product_feature Add(Entities.product_feature ProductFeature)
+        public async Task<Entities.product_feature> Add(Entities.product_feature ProductFeature)
         {
             long? idAux = ProductFeature.id;
             ProductFeature.id = null;
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             Entities.Add(ProductFeature);
             RestRequest request = this.RequestForAdd("product_features", Entities);
-            Entities.product_feature aux = this.Execute<Entities.product_feature>(request);
+            Entities.product_feature aux = await this.Execute<Entities.product_feature>(request);
             ProductFeature.id = idAux;
-            return this.Get((long)aux.id);
+            return await this.Get((long)aux.id);
         }
 
-        public void Update(Entities.product_feature ProductFeature)
+        public Task Update(Entities.product_feature ProductFeature)
         {
             RestRequest request = this.RequestForUpdate("product_features", ProductFeature.id, ProductFeature);
-            this.Execute<Entities.product_feature>(request);
+            return this.Execute<Entities.product_feature>(request);
         }
 
-        public void Delete(long ProducFeaturetId)
+        public Task Delete(long ProducFeaturetId)
         {
             RestRequest request = this.RequestForDelete("product_features", ProducFeaturetId);
-            this.Execute<Entities.product_feature>(request);
+            return this.Execute<Entities.product_feature>(request);
         }
 
-        public void Delete(Entities.product_feature ProductFeature)
+        public Task Delete(Entities.product_feature ProductFeature)
         {
-            this.Delete((long)ProductFeature.id);
+            return this.Delete((long)ProductFeature.id);
         }
 
-        public List<long> GetIds()
+        public Task<List<long>> GetIds()
         {
             RestRequest request = this.RequestForGet("product_features", null, "prestashop");
             return this.ExecuteForGetIds<List<long>>(request, "product_feature");
@@ -63,7 +60,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<Entities.product_feature> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public Task<List<Entities.product_feature>> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("product_features", "full", Filter, Sort, Limit, "product_features");
             return this.ExecuteForFilter<List<Entities.product_feature>>(request);
@@ -76,10 +73,10 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<long> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public async Task<List<long>> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("product_features", "[id]", Filter, Sort, Limit, "product_features");
-            List<PrestaSharp.Entities.FilterEntities.product_feature> aux = this.Execute<List<PrestaSharp.Entities.FilterEntities.product_feature>>(request);
+            List<PrestaSharp.Entities.FilterEntities.product_feature> aux = await this.Execute<List<PrestaSharp.Entities.FilterEntities.product_feature>>(request);
             return (List<long>)(from t in aux select t.id).ToList<long>();
         }
 
@@ -87,7 +84,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// Get all product_features.
         /// </summary>
         /// <returns>A list of product_features</returns>
-        public List<Entities.product_feature> GetAll()
+        public Task<List<Entities.product_feature>> GetAll()
         {
             return this.GetByFilter(null, null, null);
         }
@@ -97,7 +94,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// </summary>
         /// <param name="ProductFeatures"></param>
         /// <returns></returns>
-        public List<Entities.product_feature> AddList(List<Entities.product_feature> ProductFeatures)
+        public Task<List<Entities.product_feature>> AddList(List<Entities.product_feature> ProductFeatures)
         {
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             foreach (Entities.product_feature ProductFeature in ProductFeatures)

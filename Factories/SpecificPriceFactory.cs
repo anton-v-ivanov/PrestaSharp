@@ -1,10 +1,7 @@
 ﻿using RestSharp;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
 namespace Bukimedia.PrestaSharp.Factories
 {
@@ -15,42 +12,42 @@ namespace Bukimedia.PrestaSharp.Factories
         {
         }
 
-		public Entities.specific_price Get(long SpecificPriceId)
+		public Task<Entities.specific_price> Get(long SpecificPriceId)
         {
 			RestRequest request = this.RequestForGet("specific_prices", SpecificPriceId, "specific_price");
 			return this.Execute<Entities.specific_price>(request);
         }
 
-		public Entities.specific_price Add(Entities.specific_price SpecificPrice)
+		public async Task<Entities.specific_price> Add(Entities.specific_price SpecificPrice)
         {
 			long? idAux = SpecificPrice.id;
 			SpecificPrice.id = null;
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
 			Entities.Add(SpecificPrice);
 			RestRequest request = this.RequestForAdd("specific_prices", Entities);
-			Entities.specific_price aux = this.Execute<Entities.specific_price>(request);
+			Entities.specific_price aux = await this.Execute<Entities.specific_price>(request);
 			SpecificPrice.id = idAux;
-            return this.Get((long)aux.id);
+            return await this.Get((long)aux.id);
         }
 
-		public void Update(Entities.specific_price SpecificPrice)
+		public Task Update(Entities.specific_price SpecificPrice)
         {
 			RestRequest request = this.RequestForUpdate("specific_prices", SpecificPrice.id, SpecificPrice);
-            this.Execute<Entities.specific_price>(request);
+            return this.Execute<Entities.specific_price>(request);
         }
 
-		public void Delete(long SpecificPriceId)
+		public Task Delete(long SpecificPriceId)
         {
 			RestRequest request = this.RequestForDelete("specific_prices", SpecificPriceId);
-            this.Execute<Entities.specific_price>(request);
+            return this.Execute<Entities.specific_price>(request);
         }
 
-		public void Delete(Entities.specific_price SpecificPrice)
+		public Task Delete(Entities.specific_price SpecificPrice)
         {
-			this.Delete((long)SpecificPrice.id);
+			return this.Delete((long)SpecificPrice.id);
         }
 
-        public List<long> GetIds()
+        public Task<List<long>> GetIds()
         {
 			RestRequest request = this.RequestForGet("specific_prices", null, "prestashop");
 			return this.ExecuteForGetIds<List<long>>(request, "specific_price");
@@ -63,7 +60,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-		public List<Entities.specific_price> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+		public Task<List<Entities.specific_price>> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
 			RestRequest request = this.RequestForFilter("specific_prices", "full", Filter, Sort, Limit, "specific_prices");
             return this.ExecuteForFilter<List<Entities.specific_price>>(request);
@@ -76,10 +73,10 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<long> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public async Task<List<long>> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
 			RestRequest request = this.RequestForFilter("specific_prices", "[id]", Filter, Sort, Limit, "specific_prices");
-			List<PrestaSharp.Entities.FilterEntities.specific_price> aux = this.Execute<List<PrestaSharp.Entities.FilterEntities.specific_price>>(request);
+			List<PrestaSharp.Entities.FilterEntities.specific_price> aux = await this.Execute<List<PrestaSharp.Entities.FilterEntities.specific_price>>(request);
             return (List<long>)(from t in aux select t.id).ToList<long>();
         }
 
@@ -87,7 +84,7 @@ namespace Bukimedia.PrestaSharp.Factories
 		/// Get all specific prices.
         /// </summary>
 		/// <returns>A list of specific prices</returns>
-        public List<Entities.specific_price> GetAll()
+        public Task<List<Entities.specific_price>> GetAll()
         {
             return this.GetByFilter(null, null, null);
         }
@@ -97,7 +94,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// </summary>
 		/// <param name="SpecificPrices"></param>
         /// <returns></returns>
-		public List<Entities.specific_price> AddList(List<Entities.specific_price> SpecificPrices)
+		public Task<List<Entities.specific_price>> AddList(List<Entities.specific_price> SpecificPrices)
         {
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
 			foreach (Entities.specific_price SpecificPrice in SpecificPrices)

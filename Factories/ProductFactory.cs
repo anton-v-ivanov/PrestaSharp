@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
 namespace Bukimedia.PrestaSharp.Factories
 {
@@ -15,31 +13,31 @@ namespace Bukimedia.PrestaSharp.Factories
         {            
         }
 
-        public Entities.product Get(long ProductId)
+        public Task<Entities.product> Get(long ProductId)
         {
             RestRequest request = this.RequestForGet("products", ProductId, "product");
             return this.Execute<Entities.product>(request);
         }
 
-        public Entities.product Add(Entities.product Product)
+        public async Task<Entities.product> Add(Entities.product Product)
         {
             long? idAux = Product.id;
             Product.id = null;
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             Entities.Add(Product);
             RestRequest request = this.RequestForAdd("products", Entities);
-            Entities.product aux = this.Execute<Entities.product>(request);
+            Entities.product aux = await this.Execute<Entities.product>(request);
             Product.id = idAux;
-            return this.Get((long)aux.id);
+            return await this.Get((long)aux.id);
         }
 
-        public void Update(Entities.product Product)
+        public Task Update(Entities.product Product)
         {
             RestRequest request = this.RequestForUpdate("products", Product.id, Product);
-            this.Execute<Entities.product>(request);
+            return this.Execute<Entities.product>(request);
         }
         // For Update List Of Product - Start
-        public List<Entities.product> UpdateList(List<Entities.product> Products)
+        public Task<List<Entities.product>> UpdateList(List<Entities.product> Products)
         {
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             foreach (Entities.product Product in Products)
@@ -50,19 +48,20 @@ namespace Bukimedia.PrestaSharp.Factories
             Console.WriteLine(request);
             return this.Execute<List<Entities.product>>(request);
         }
+        
         // For Update List Of Product - End
-        public void Delete(long ProductId)
+        public Task Delete(long ProductId)
         {
             RestRequest request = this.RequestForDelete("products", ProductId);
-            this.Execute<Entities.product>(request);
+            return this.Execute<Entities.product>(request);
         }
 
-        public void Delete(Entities.product Product)
+        public Task Delete(Entities.product Product)
         {
-            this.Delete((long)Product.id);
+            return this.Delete((long)Product.id);
         }
 
-        public List<long> GetIds()
+        public Task<List<long>> GetIds()
         {
             RestRequest request = this.RequestForGet("products", null, "prestashop");
             return this.ExecuteForGetIds<List<long>>(request, "product");
@@ -75,7 +74,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<Entities.product> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public Task<List<Entities.product>> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("products", "full", Filter, Sort, Limit, "products");
             return this.ExecuteForFilter<List<Entities.product>>(request);
@@ -88,10 +87,10 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<long> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public async Task<List<long>> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("products", "[id]", Filter, Sort, Limit, "products");
-            List<PrestaSharp.Entities.FilterEntities.product> aux = this.Execute<List<PrestaSharp.Entities.FilterEntities.product>>(request);
+            List<PrestaSharp.Entities.FilterEntities.product> aux = await this.Execute<List<PrestaSharp.Entities.FilterEntities.product>>(request);
             return (List<long>)(from t in aux select t.id).ToList<long>();
         }
 
@@ -99,7 +98,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// Get all products.
         /// </summary>
         /// <returns>A list of products</returns>
-        public List<Entities.product> GetAll()
+        public Task<List<Entities.product>> GetAll()
         {
             return this.GetByFilter(null, null, null);
         }
@@ -109,7 +108,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// </summary>
         /// <param name="Products"></param>
         /// <returns></returns>
-        public List<Entities.product> AddList(List<Entities.product> Products)
+        public Task<List<Entities.product>> AddList(List<Entities.product> Products)
         {
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             foreach (Entities.product Product in Products)

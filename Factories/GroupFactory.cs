@@ -15,42 +15,42 @@ namespace Bukimedia.PrestaSharp.Factories
         {
         }
 
-        public Entities.group Get(long GroupId)
+        public Task<Entities.group> Get(long GroupId)
         {
             RestRequest request = this.RequestForGet("groups", GroupId, "group");
             return this.Execute<Entities.group>(request);
         }
 
-        public Entities.group Add(Entities.group Group)
+        public async Task<Entities.group> Add(Entities.group Group)
         {
             long? idAux = Group.id;
             Group.id = null;
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             Entities.Add(Group);
             RestRequest request = this.RequestForAdd("groups", Entities);
-            Entities.group aux = this.Execute<Entities.group>(request);
+            Entities.group aux = await this.Execute<Entities.group>(request);
             Group.id = idAux;
-            return this.Get((long)aux.id);
+            return await this.Get((long)aux.id);
         }
 
-        public void Update(Entities.group Group)
+        public Task Update(Entities.group Group)
         {
             RestRequest request = this.RequestForUpdate("groups", Group.id, Group);
-            this.Execute<Entities.group>(request);
+            return this.Execute<Entities.group>(request);
         }
 
-        public void Delete(long GroupId)
+        public Task Delete(long GroupId)
         {
             RestRequest request = this.RequestForDelete("groups", GroupId);
-            this.Execute<Entities.group>(request);
+            return this.Execute<Entities.group>(request);
         }
 
-        public void Delete(Entities.group Group)
+        public Task Delete(Entities.group Group)
         {
-            this.Delete((long)Group.id);
+            return this.Delete((long)Group.id);
         }
 
-        public List<long> GetIds()
+        public Task<List<long>> GetIds()
         {
             RestRequest request = this.RequestForGet("groups", null, "prestashop");
             return this.ExecuteForGetIds<List<long>>(request, "group");
@@ -63,7 +63,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<Entities.group> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public Task<List<Entities.group>> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("groups", "full", Filter, Sort, Limit, "groups");
             return this.ExecuteForFilter<List<Entities.group>>(request);
@@ -76,10 +76,10 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<long> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public async Task<List<long>> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("groups", "[id]", Filter, Sort, Limit, "groups");
-            List<PrestaSharp.Entities.FilterEntities.group> aux = this.Execute<List<PrestaSharp.Entities.FilterEntities.group>>(request);
+            List<PrestaSharp.Entities.FilterEntities.group> aux = await this.Execute<List<PrestaSharp.Entities.FilterEntities.group>>(request);
             return (List<long>)(from t in aux select t.id).ToList<long>();
         }
 
@@ -87,7 +87,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// Get all groups.
         /// </summary>
         /// <returns>A list of groups</returns>
-        public List<Entities.group> GetAll()
+        public Task<List<Entities.group>> GetAll()
         {
             return this.GetByFilter(null, null, null);
         }
@@ -97,7 +97,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// </summary>
         /// <param name="Groups"></param>
         /// <returns></returns>
-        public List<Entities.group> AddList(List<Entities.group> Groups)
+        public Task<List<Entities.group>> AddList(List<Entities.group> Groups)
         {
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             foreach (Entities.group Group in Groups)

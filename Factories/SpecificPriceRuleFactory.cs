@@ -1,10 +1,7 @@
 ﻿using RestSharp;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
 namespace Bukimedia.PrestaSharp.Factories
 {
@@ -15,42 +12,42 @@ namespace Bukimedia.PrestaSharp.Factories
         {
         }
 
-		public Entities.specific_price_rule Get(long SpecificPriceId)
+		public Task<Entities.specific_price_rule> Get(long SpecificPriceId)
         {
 			RestRequest request = this.RequestForGet("specific_price_rules", SpecificPriceId, "specific_price_rule");
 			return this.Execute<Entities.specific_price_rule>(request);
         }
 
-		public Entities.specific_price_rule Add(Entities.specific_price_rule SpecificPriceRule)
+		public async Task<Entities.specific_price_rule> Add(Entities.specific_price_rule SpecificPriceRule)
         {
 			long? idAux = SpecificPriceRule.id;
 			SpecificPriceRule.id = null;
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
 			Entities.Add(SpecificPriceRule);
 			RestRequest request = this.RequestForAdd("specific_price_rules", Entities);
-			Entities.specific_price_rule aux = this.Execute<Entities.specific_price_rule>(request);
+			Entities.specific_price_rule aux = await this.Execute<Entities.specific_price_rule>(request);
 			SpecificPriceRule.id = idAux;
-            return this.Get((long)aux.id);
+            return await this.Get((long)aux.id);
         }
 
-		public void Update(Entities.specific_price_rule SpecificPriceRule)
+		public Task Update(Entities.specific_price_rule SpecificPriceRule)
         {
 			RestRequest request = this.RequestForUpdate("specific_price_rules", SpecificPriceRule.id, SpecificPriceRule);
-            this.Execute<Entities.specific_price_rule>(request);
+            return this.Execute<Entities.specific_price_rule>(request);
         }
 
-		public void Delete(long SpecificPriceRuleId)
+		public Task Delete(long SpecificPriceRuleId)
         {
 			RestRequest request = this.RequestForDelete("specific_price_rules", SpecificPriceRuleId);
-            this.Execute<Entities.specific_price_rule>(request);
+            return this.Execute<Entities.specific_price_rule>(request);
         }
 
-		public void Delete(Entities.specific_price_rule SpecificPriceRule)
+		public Task Delete(Entities.specific_price_rule SpecificPriceRule)
         {
-			this.Delete((long)SpecificPriceRule.id);
+			return this.Delete((long)SpecificPriceRule.id);
         }
 
-        public List<long> GetIds()
+        public Task<List<long>> GetIds()
         {
 			RestRequest request = this.RequestForGet("specific_price_rules", null, "prestashop");
 			return this.ExecuteForGetIds<List<long>>(request, "specific_price_rule");
@@ -63,7 +60,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-		public List<Entities.specific_price_rule> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+		public Task<List<Entities.specific_price_rule>> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
 			RestRequest request = this.RequestForFilter("specific_price_rules", "full", Filter, Sort, Limit, "specific_price_rules");
             return this.ExecuteForFilter<List<Entities.specific_price_rule>>(request);
@@ -76,10 +73,10 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<long> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public async Task<List<long>> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
 			RestRequest request = this.RequestForFilter("specific_price_rules", "[id]", Filter, Sort, Limit, "specific_price_rules");
-			List<PrestaSharp.Entities.FilterEntities.specific_price_rule> aux = this.Execute<List<PrestaSharp.Entities.FilterEntities.specific_price_rule>>(request);
+			List<PrestaSharp.Entities.FilterEntities.specific_price_rule> aux = await this.Execute<List<PrestaSharp.Entities.FilterEntities.specific_price_rule>>(request);
             return (List<long>)(from t in aux select t.id).ToList<long>();
         }
 
@@ -87,7 +84,7 @@ namespace Bukimedia.PrestaSharp.Factories
 		/// Get all specific price rules.
         /// </summary>
 		/// <returns>A list of specific price rules</returns>
-        public List<Entities.specific_price_rule> GetAll()
+        public Task<List<Entities.specific_price_rule>> GetAll()
         {
             return this.GetByFilter(null, null, null);
         }
@@ -97,7 +94,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// </summary>
 		/// <param name="SpecificPriceRules"></param>
         /// <returns></returns>
-		public List<Entities.specific_price_rule> AddList(List<Entities.specific_price_rule> SpecificPriceRules)
+		public Task<List<Entities.specific_price_rule>> AddList(List<Entities.specific_price_rule> SpecificPriceRules)
         {
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
 			foreach (Entities.specific_price_rule SpecificPriceRule in SpecificPriceRules)

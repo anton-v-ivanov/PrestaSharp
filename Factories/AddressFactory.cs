@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Bukimedia.PrestaSharp.Entities.FilterEntities;
 
 namespace Bukimedia.PrestaSharp.Factories
 {
@@ -15,42 +16,42 @@ namespace Bukimedia.PrestaSharp.Factories
         {
         }
 
-		public Entities.address Get(long AddressId)
+		public Task<Entities.address> Get(long AddressId)
         {
 			RestRequest request = this.RequestForGet("addresses", AddressId, "address");
 			return this.Execute<Entities.address>(request);
         }
 
-		public Entities.address Add(Entities.address Address)
+		public async Task<Entities.address> Add(Entities.address Address)
         {
 			long? idAux = Address.id;
 			Address.id = null;
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
 			Entities.Add(Address);
 			RestRequest request = this.RequestForAdd("addresses", Entities);
-			Entities.address aux = this.Execute<Entities.address>(request);
+			Entities.address aux = await this.Execute<Entities.address>(request);
 			Address.id = idAux;
-            return this.Get((long)aux.id);
+            return await this.Get((long)aux.id);
         }
 
-		public void Update(Entities.address Address)
+		public Task Update(Entities.address Address)
         {
 			RestRequest request = this.RequestForUpdate("addresses", Address.id, Address);
-            this.Execute<Entities.address>(request);
+            return this.Execute<Entities.address>(request);
         }
 
-		public void Delete(long AddressId)
+		public Task Delete(long AddressId)
         {
 			RestRequest request = this.RequestForDelete("addresses", AddressId);
-            this.Execute<Entities.address>(request);
+            return this.Execute<Entities.address>(request);
         }
 
-		public void Delete(Entities.address Address)
+		public Task Delete(Entities.address Address)
         {
-			this.Delete((long)Address.id);
+			return this.Delete((long)Address.id);
         }
 
-        public List<long> GetIds()
+        public Task<List<long>> GetIds()
         {
 			RestRequest request = this.RequestForGet("addresses", null, "prestashop");
 			return this.ExecuteForGetIds<List<long>>(request, "address");
@@ -63,7 +64,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-		public List<Entities.address> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+		public Task<List<Entities.address>> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
 			RestRequest request = this.RequestForFilter("addresses", "full", Filter, Sort, Limit, "addresses");
             return this.ExecuteForFilter<List<Entities.address>>(request);
@@ -76,18 +77,18 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<long> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public async Task<List<long>> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
-            RestRequest request = this.RequestForFilter("addresses", "[id]", Filter, Sort, Limit, "addresses");
-            List<PrestaSharp.Entities.FilterEntities.address> aux = this.Execute<List<PrestaSharp.Entities.FilterEntities.address>>(request);
-            return (List<long>)(from t in aux select t.id).ToList<long>();
+            var request = this.RequestForFilter("addresses", "[id]", Filter, Sort, Limit, "addresses");
+            var aux = await this.Execute<List<address>>(request);
+            return (from t in aux select t.id).ToList();
         }
 
         /// <summary>
 		/// Get all addresses.
         /// </summary>
 		/// <returns>A list of addresses</returns>
-        public List<Entities.address> GetAll()
+        public Task<List<Entities.address>> GetAll()
         {
             return this.GetByFilter(null, null, null);
         }
@@ -97,15 +98,15 @@ namespace Bukimedia.PrestaSharp.Factories
         /// </summary>
 		/// <param name="Addresses"></param>
         /// <returns></returns>
-		public List<Entities.address> AddList(List<Entities.address> Addresses)
+		public Task<List<Entities.address>> AddList(List<Entities.address> Addresses)
         {
-            List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
+            var entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
 			foreach (Entities.address Address in Addresses)
             {
 				Address.id = null;
-				Entities.Add(Address);
+				entities.Add(Address);
             }
-			RestRequest request = this.RequestForAdd("addresses", Entities);
+			var request = this.RequestForAdd("addresses", entities);
 			return this.Execute<List<Entities.address>>(request);
         }
 	}

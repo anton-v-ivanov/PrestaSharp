@@ -15,42 +15,42 @@ namespace Bukimedia.PrestaSharp.Factories
         {
         }
 
-        public Entities.cart Get(long CartId)
+        public Task<Entities.cart> Get(long CartId)
         {
             RestRequest request = this.RequestForGet("carts", CartId, "cart");
             return this.Execute<Entities.cart>(request);
         }
 
-        public Entities.cart Add(Entities.cart Cart)
+        public async Task<Entities.cart> Add(Entities.cart Cart)
         {
             long? idAux = Cart.id;
             Cart.id = null;
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             Entities.Add(Cart);
             RestRequest request = this.RequestForAdd("carts", Entities);
-            Entities.cart aux = this.Execute<Entities.cart>(request);
+            Entities.cart aux = await this.Execute<Entities.cart>(request);
             Cart.id = idAux;
-            return this.Get((long)aux.id);
+            return await this.Get((long)aux.id);
         }
 
-        public void Update(Entities.cart Cart)
+        public Task Update(Entities.cart Cart)
         {
             RestRequest request = this.RequestForUpdate("carts", Cart.id, Cart);
-            this.Execute<Entities.cart>(request);
+            return this.Execute<Entities.cart>(request);
         }
 
-        public void Delete(long CartId)
+        public Task Delete(long CartId)
         {
             RestRequest request = this.RequestForDelete("carts", CartId);
-            this.Execute<Entities.cart>(request);
+            return this.Execute<Entities.cart>(request);
         }
 
-        public void Delete(Entities.cart Cart)
+        public Task Delete(Entities.cart Cart)
         {
-            this.Delete((long)Cart.id);
+            return this.Delete((long)Cart.id);
         }
 
-        public List<long> GetIds()
+        public Task<List<long>> GetIds()
         {
             RestRequest request = this.RequestForGet("carts", null, "prestashop");
             return this.ExecuteForGetIds<List<long>>(request, "cart");
@@ -63,7 +63,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<Entities.cart> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public Task<List<Entities.cart>> GetByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("carts", "full", Filter, Sort, Limit, "carts");
             return this.ExecuteForFilter<List<Entities.cart>>(request);
@@ -76,10 +76,10 @@ namespace Bukimedia.PrestaSharp.Factories
         /// <param name="Sort">Field_ASC or Field_DESC. Example: name_ASC or name_DESC</param>
         /// <param name="Limit">Example: 5 limit to 5. 9,5 Only include the first 5 elements starting from the 10th element.</param>
         /// <returns></returns>
-        public List<long> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
+        public async Task<List<long>> GetIdsByFilter(Dictionary<string, string> Filter, string Sort, string Limit)
         {
             RestRequest request = this.RequestForFilter("carts", "[id]", Filter, Sort, Limit, "carts");
-            List<PrestaSharp.Entities.FilterEntities.cart> aux = this.Execute<List<PrestaSharp.Entities.FilterEntities.cart>>(request);
+            List<PrestaSharp.Entities.FilterEntities.cart> aux = await this.Execute<List<PrestaSharp.Entities.FilterEntities.cart>>(request);
             return (List<long>)(from t in aux select t.id).ToList<long>();
         }
 
@@ -87,7 +87,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// Get all carts.
         /// </summary>
         /// <returns>A list of carts</returns>
-        public List<Entities.cart> GetAll()
+        public Task<List<Entities.cart>> GetAll()
         {
             return this.GetByFilter(null, null, null);
         }
@@ -97,7 +97,7 @@ namespace Bukimedia.PrestaSharp.Factories
         /// </summary>
         /// <param name="Carts"></param>
         /// <returns></returns>
-        public List<Entities.cart> AddList(List<Entities.cart> Carts)
+        public Task<List<Entities.cart>> AddList(List<Entities.cart> Carts)
         {
             List<PrestaSharp.Entities.PrestaShopEntity> Entities = new List<PrestaSharp.Entities.PrestaShopEntity>();
             foreach (Entities.cart Cart in Carts)
